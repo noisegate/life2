@@ -2,6 +2,14 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+/*
+ _     _  __
+| |   (_)/ _| ___
+| |   | | |_ / _ \
+| |___| |  _|  __/
+|_____|_|_|  \___|
+
+*/
 
 #define MAXCIJFERS 20
 
