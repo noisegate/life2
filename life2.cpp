@@ -14,7 +14,6 @@
 #define MAXCIJFERS 20
 using namespace std;
 
-
 void lees_Optie (char & );
 void lees_Getal (int &, int);
 void random_Getal ();
@@ -40,6 +39,7 @@ class Life {
     void vulrandom ();
     void maakschoon ();
     void zetpercentage ();
+    int aantalburen(int, int);
     void gaan ();
     void start();
     void heelschoon();
@@ -196,6 +196,20 @@ int Life::random_Getal() {
   return _getal;
 
 } // randomgetal
+
+int Life::aantalburen(int x, int y){
+  // check check
+  int buren = 0;
+  if (wereld[x-1][y-1]) buren++;
+  if (wereld[x][y-1]) buren++;
+  if (wereld[x+1][y-1]) buren++;
+  if (wereld[x-1][y]) buren++;
+  if (wereld[x+1][y]) buren++;
+  if (wereld[x-1][y+1]) buren++;
+  if (wereld[x][y+1]) buren++;
+  if (wereld[x+1][y+1]) buren++;
+  return buren;
+}
 
 int main() {
 
