@@ -15,16 +15,31 @@ _     _  __
 
 #define MAX 1000
 #define MAXCIJFERS 20
+
 using namespace std;
+
+#define MENUSTRING \
+"(H)eelschoon s(C)hoon (R)andom (P)arameters (S)toppen g(A)an (D)ruk af (G)lidergun"
 
 #define LOOPX                                                                  \
   int x = hoeki;                                                               \
   x < (hoeki + breedte);                                                       \
   x++
+
 #define LOOPY                                                                  \
   int y = hoekj;                                                               \
   y < (hoekj + hoogte);                                                        \
   y++
+
+#define WORLDLOOPX                                                             \
+  int x = 0;                                                                   \
+  x < MAX;                                                                     \
+  x++;
+
+#define WORLDLOOPY                                                             \
+  int y = 0;                                                                   \
+  y < MAX;                                                                     \
+  y++;
 
 class Life {
 private:
@@ -34,6 +49,7 @@ private:
   int schuif, percentage, generaties;
   char kies, levend, dood;
   int getal;
+  void killborder();
   void copytohulp();
   void copytoreal();
 
@@ -87,6 +103,17 @@ void Life::schoon() {
   }
 } // view schoonmaken
 
+void Life::killborder(){
+  for (int x=0;x<MAX;x++) {
+    wereld[0][x]=false;
+    wereld[MAX-1][x]=false;
+  }
+  for (int y=0;y<MAX;y++) {
+    wereld[y][0]=false;
+    wereld[y][MAX-1]=false;
+  }
+}
+
 void Life::copytohulp() {
   for (int x = 0; x < MAX; x++)
     for (int y = 0; y < MAX; y++)
@@ -130,8 +157,7 @@ void Life::start() {
 } // start
 
 void Life::menu() {
-  cout << "(H)eelschoon s(C)hoon (R)andom (P)arameters (S)toppen (G)lidergun"
-       << endl;
+  cout << MENUSTRING << endl;
   lees_Optie();
   switch (kies) {
   case 'h':
@@ -164,21 +190,7 @@ void Life::menu() {
     wereldafdruk();
     break;
   case 'a':
-    for (int teller = 0; teller < 1000; teller++) {
-      copytohulp();
-      for (LOOPX)
-        for (LOOPY) {
-          int dummy = aantalburen(x, y);
-          if (((dummy == 2) || (dummy == 3)) && wereld[y][x])
-            hulpwereld[y][x] = true;
-          else if (dummy == 3 && !wereld[y][x])
-            hulpwereld[y][x] = true;
-          else
-            hulpwereld[y][x] = false;
-        }
-      copytoreal();
-      drukaf();
-    }
+    gaan();
     break;
   case 's': // stoppen
   case 'S': // stoppen
@@ -186,16 +198,38 @@ void Life::menu() {
   }
 } // menu
 
+void Life::gaan(){
+  for (int teller = 0; teller < 1000; teller++) {
+    killborder();
+    copytohulp();
+    for (LOOPX)
+      for (LOOPY) {
+        int dummy = aantalburen(x, y);
+        if (((dummy == 2) || (dummy == 3)) && wereld[y][x])
+          hulpwereld[y][x] = true;
+        else if (dummy == 3 && !wereld[y][x])
+          hulpwereld[y][x] = true;
+        else
+          hulpwereld[y][x] = false;
+      }
+    copytoreal();
+    drukaf();
+  }
+
+}
+
 void Life::sub_Menu() {
 
   bool doen = true;
   cout << "(T)erug (P)ercentage (K)arakters (S)tapgrootte" << endl;
-  lees_Optie();
+
   while (doen) {
+    lees_Optie();
     switch (kies) {
     case 't': // terug
     case 'T': // terug
       doen = false;
+      cout << "leaving submenu" << endl;
       break;
     case 'p': // percentage
     case 'P': // percentage
@@ -207,6 +241,23 @@ void Life::sub_Menu() {
     case 'K':
       karakters();
       break;
+    case 'w':
+      hoekj--;
+      if (hoekj<0) hoekj=0;
+      break;
+    case 'z':
+      hoekj++;
+      if (hoekj>(MAX-hoogte))hoekj=MAX-hoogte;
+      break;
+    case 'a':
+      hoeki--;
+      if (hoeki<0) hoeki=0;
+      break;
+    case 's':
+      hoeki++;
+      if (hoeki>(MAX-breedte))hoeki=MAX-breedte;
+      break;
+
     default:
       // sub_Menu(Life &mylife);
       break;
@@ -296,7 +347,7 @@ int Life::aantalburen(int x, int y) {
     if (wereld[y + 1][x + 1])
       buren++;
   }
-  
+
   return buren;
 }
 
@@ -328,7 +379,7 @@ void Life::glidergun() {
 
 int main() {
 
-  Life mylife(80, 60);
+  Life mylife(30,30);
 
   mylife.heelschoon();
   mylife.start();
