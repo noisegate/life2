@@ -58,12 +58,14 @@ private:
   int cursory;
   char kies, levend, dood;
   int getal;
+  int step;
+  double fraction;
   void killborder();
   void copytohulp();
   void copytoreal();
   void verschuif();
   void footer();
-  void eengeneratie(bool);
+  void eengeneratie(bool, bool);
   void toggle();
   void stapgrootte();
 
@@ -98,6 +100,8 @@ Life::Life() {
   hoekj = 1;
   levend = 'x';
   dood = ' ';
+  fraction = 0.5;
+  step=1;
 }
 
 //Constructor
@@ -106,6 +110,8 @@ Life::Life(int width, int height):breedte(width),hoogte(height) {
   hoekj = 3;
   levend = 'x';
   dood = ' ';
+  fraction=0.5;
+  step=1;
 }
 
 //Toggle klapt levend en dood om met cursorpositie
@@ -139,7 +145,7 @@ void Life::toggle(){
 }
 
 //Een generatie, er wordt één generatie uitgevoerd
-void Life::eengeneratie(bool metmenu){
+void Life::eengeneratie(bool metmenu, bool afdrukken){
   killborder();
   copytohulp();
   for (LOOPX)
@@ -153,10 +159,12 @@ void Life::eengeneratie(bool metmenu){
         hulpwereld[y][x] = false;
     }
   copytoreal();
-  drukaf();
-  if (metmenu) footer();
-  cout<<endl;
-  usleep(100000);
+  if (afdrukken){
+    drukaf();
+    if (metmenu) footer();
+    cout<<endl;
+    usleep(100000);
+  }
 }
 
 //Heelschoon, maakt de hele wereld leeg
@@ -217,13 +225,13 @@ void Life::wereldafdruk() {
 void Life::zetpercentage() {
   cout << "Nieuw percentage levende cellen.. " ;
   lees_Getal();
-
+  fraction = (double)(getal/100.0);
 }
 
 void Life::stapgrootte(){
   cout << "Nieuwe stapgrootte.. ";
   lees_Getal();
-
+  step = getal;
 }
 
 //Start, begin van programma met schone wereld
@@ -245,7 +253,7 @@ void Life::menu() {
   switch (kies) {
   case 'e': //Een generatie
   case 'E':
-    eengeneratie(false);
+    eengeneratie(false,true);
     break;
   case 'h': //Heelschoon
   case 'H':
@@ -294,13 +302,13 @@ void Life::menu() {
 }
 //Submenu, keuze in submenu
 void Life::sub_Menu() {
-
+  char localkies;
   bool doen = true;
   cout << "(T)erug (P)ercentage (K)arakters (S)tapgrootte" << endl;
 
   while (doen) {
-    kies = lees_Optie();
-    switch (kies) {
+    localkies = lees_Optie();
+    switch (localkies) {
     case 't': // terug
     case 'T': // terug
       doen = false;
@@ -310,11 +318,11 @@ void Life::sub_Menu() {
     case 'P': // percentage
       zetpercentage();
       doen = false;
-      cout << getal;
       break;
     case 's': //stapgrootte
     case 'S': //stapgrootte
       stapgrootte();
+      doen=false;
       break;
     case 'k': //karakters
     case 'K': //karakters
@@ -330,10 +338,9 @@ void Life::sub_Menu() {
 //Gaan, toont meerdere generaties achter elkaar
 void Life::gaan(){
   for (int teller = 0; teller < SERIEGROOTTE-1; teller++) {
-    eengeneratie(true);
-    //cout << endl;
+    eengeneratie(true,teller%step==0);
   }//for
-  eengeneratie(false);
+  eengeneratie(false,true);
 }
 //Drukaf, print de view
 void Life::drukaf() {
@@ -381,10 +388,14 @@ void Life::verschuif(){
 }
 //Vulrandom, vullen van de view met random
 void Life::vulrandom() {
+  int thresh;
+  thresh = (int)((1.0-fraction)*1000);
+
   for (int x = hoeki; x < (hoeki + breedte); x++)
     for (int y = hoekj; y < (hoekj + hoogte); y++)
-      wereld[y][x] = (random_Getal() < 500 ? false : true);
+      wereld[y][x] = (random_Getal() < thresh ? false : true);
 } // randomn vullen van view
+
 //Lees optie, lees een optie in
 char Life::lees_Optie() {
   char weg;
@@ -416,16 +427,8 @@ void Life::lees_Getal() {
   int dummygetal = 0;
 
   for (int j = 0; j < teller; j++) {
-    dummygetal = 0;
-    for (int i = 0; i < j; i++) {
-      dummygetal += (myarray[i] - 48) * pow(10, j - i - 1);
-
-      // dummygetal += (myarray[i] - 48) * pow(10, teller - i - 1);
-      // cout << i;
-    }
-    // cout << endl << dummygetal << endl;
+    dummygetal += (myarray[j] - 48) * pow(10, teller-j-1);
   }
-  // cout << endl << dummygetal << endl;
 
   getal = dummygetal;
 } // lees getal in
