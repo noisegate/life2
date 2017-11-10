@@ -7,19 +7,26 @@ _     _  __
 |_____|_|_|  \___|
 
 */
+
+//Programma Life
+//Gebruikte compiler: clang++
+//In dit programma kan het spel Life worden gespeeld
+
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <unistd.h>
+//#include <stdio.h>
 
 #define MAX 1000
 #define MAXCIJFERS 20
-
+#define SERIEGROOTTE 100
 using namespace std;
 
 #define MENUSTRING \
-"(H)eelschoon s(C)hoon (R)andom (P)arameters (S)toppen g(A)an (D)ruk af (G)lidergun"
+"(H)eelschoon s(C)hoon (R)andom (E)en (P)arameters (S)toppen g(A)an (D)ruk af (G)lidergun (V)erschuif[i/j/k/m] (T)oggle[w/a/s/z]"
 
 #define LOOPX                                                                  \
   int x = hoeki;                                                               \
@@ -45,20 +52,27 @@ class Life {
 private:
   bool wereld[MAX][MAX];
   bool hulpwereld[MAX][MAX];
-  int hoogte, breedte, hoeki, hoekj;
+  int breedte, hoogte, hoeki, hoekj;
   int schuif, percentage, generaties;
+  int cursorx;
+  int cursory;
   char kies, levend, dood;
   int getal;
   void killborder();
   void copytohulp();
   void copytoreal();
+  void verschuif();
+  void footer();
+  void eengeneratie(bool);
+  void toggle();
+
 
 public:
   Life(); // constructor
-  Life(int, int);
+  Life(int width, int height);
   void menu();
   void sub_Menu();
-  void lees_Optie();
+  char lees_Optie();
   void lees_Getal();
   int random_Getal();
   void wereldafdruk();
@@ -75,91 +89,157 @@ public:
   void karakters();
 };
 
+//Default constructor
 Life::Life() {
-  hoogte = 40;
   breedte = 80;
+  hoogte = 40;
+
   hoeki = 1;
   hoekj = 1;
+  levend = 'x';
+  dood = ' ';
 }
 
-Life::Life(int width, int height) {
-  hoogte = height;
-  breedte = width;
+//Constructor
+Life::Life(int width, int height):breedte(width),hoogte(height) {
   hoeki = 3;
   hoekj = 3;
+  levend = 'x';
+  dood = ' ';
 }
 
+//Toggle klapt levend en dood om met cursorpositie
+void Life::toggle(){
+  char key;
+  key = ' ';
+  while(key!='q'){
+    key = lees_Optie();
+    switch(key){
+      case 'w':
+        cursory--;
+        break;
+      case 'z':
+        cursory++;
+        break;
+      case 'a':
+        cursorx--;
+        break;
+      case 's':
+        cursorx++;
+        break;
+    }
+    if (cursorx<hoeki) cursorx=hoeki;
+    if (cursory<hoekj) cursory=hoekj;
+    if (cursorx>hoeki+breedte) cursorx=hoeki+breedte;
+    if (cursory>hoekj+hoogte) cursory=hoekj+hoogte;
+    wereld[cursory][cursorx] = !wereld[cursory][cursorx];
+    drukaf();
+    cout << "(" << cursorx << ","<< cursory << ")";
+  }
+}
+
+//Een generatie, er wordt één generatie uitgevoerd
+void Life::eengeneratie(bool metmenu){
+  killborder();
+  copytohulp();
+  for (LOOPX)
+    for (LOOPY) {
+      int dummy = aantalburen(x, y);
+      if (((dummy == 2) || (dummy == 3)) && wereld[y][x])
+        hulpwereld[y][x] = true;
+      else if (dummy == 3 && !wereld[y][x])
+        hulpwereld[y][x] = true;
+      else
+        hulpwereld[y][x] = false;
+    }
+  copytoreal();
+  drukaf();
+  if (metmenu) footer();
+  cout<<endl;
+  usleep(100000);
+}
+
+//Heelschoon, maakt de hele wereld leeg
 void Life::heelschoon() {
   for (int i = 0; i < MAX; i++)
     for (int j = 0; j < MAX; j++)
       wereld[i][j] = false;
 
-} // wereld schoonmaken
+}
 
+//Schoon, maakt de view schoon
 void Life::schoon() {
   for (int y = 0; y < hoogte; y++) {
     for (int x = 0; x < breedte; x++)
       wereld[y + hoekj][x + hoeki] = false;
   }
-} // view schoonmaken
+}
 
+//Killborder, maakt de randen van de wereld dood
 void Life::killborder(){
   for (int x=0;x<MAX;x++) {
     wereld[0][x]=false;
     wereld[MAX-1][x]=false;
-  }
+  }//for
   for (int y=0;y<MAX;y++) {
     wereld[y][0]=false;
     wereld[y][MAX-1]=false;
-  }
+  }//for
 }
 
+//Copytohulp, kopieert naar hulpwereld
 void Life::copytohulp() {
   for (int x = 0; x < MAX; x++)
     for (int y = 0; y < MAX; y++)
       hulpwereld[y][x] = wereld[y][x];
 }
+//Copyhulp, kopieert naar wereld
 void Life::copytoreal() {
   for (int x = 0; x < MAX; x++)
     for (int y = 0; y < MAX; y++)
       wereld[y][x] = hulpwereld[y][x];
 }
-
-void Life::drukaf() {
-  for (LOOPY) {
-    for (LOOPX)
-      cout << (wereld[y][x] ? 'x' : ' ');
-    cout << endl;
-  }
-  // menu();
-} // afdrukken van de view
-
-void Life::karakters() {}
-
+//Karakters, verwisselen van karakters voor levend en dood
+void Life::karakters() {
+  cout << "levend: ";
+  levend = lees_Optie();
+  cout << "dood: ";
+  dood = lees_Optie();
+}
+//Wereldafdruk, drukt de gehele wereld af
 void Life::wereldafdruk() {
   for (int i = 0; i < MAX; i++)
     for (int j = 0; j < MAX; j++)
       cout << (wereld[i][j] ? 'x' : ' ');
   cout << endl;
-} // afdrukken van gehele wereld
-
+}
+//Zetpercentage, bepalen van percentage levende cellen tussen 0 en 100
 void Life::zetpercentage() {
   cout << "Nieuwe waarde.. " << endl;
   lees_Getal();
 
-} // stel percentage in tussen 0 en 100
-
+}
+//Start, begin van programma met schone wereld
 void Life::start() {
   kies = 'a';
+  drukaf();
   while (kies != 's' && kies != 'S') {
     menu();
   }
 } // start
-
+//Footer, print menu
+void Life::footer(){
+  cout << MENUSTRING;
+}
+//Menu, opties in menu
 void Life::menu() {
-  cout << MENUSTRING << endl;
-  lees_Optie();
+  footer();
+  kies = lees_Optie();
   switch (kies) {
+  case 'e':
+  case 'E':
+    eengeneratie(false);
+    break;
   case 'h':
   case 'H':
     heelschoon();
@@ -186,6 +266,9 @@ void Life::menu() {
   case 'G':
     glidergun();
     break;
+  case 'v':
+    verschuif();
+    break;
   case 'w':
     wereldafdruk();
     break;
@@ -195,36 +278,21 @@ void Life::menu() {
   case 's': // stoppen
   case 'S': // stoppen
     break;
-  }
-} // menu
+  case 't':
+  case 'T':
+    toggle();
+    break;
 
-void Life::gaan(){
-  for (int teller = 0; teller < 1000; teller++) {
-    killborder();
-    copytohulp();
-    for (LOOPX)
-      for (LOOPY) {
-        int dummy = aantalburen(x, y);
-        if (((dummy == 2) || (dummy == 3)) && wereld[y][x])
-          hulpwereld[y][x] = true;
-        else if (dummy == 3 && !wereld[y][x])
-          hulpwereld[y][x] = true;
-        else
-          hulpwereld[y][x] = false;
-      }
-    copytoreal();
-    drukaf();
-  }
-
+  }//switch
 }
-
+//Submenu, keuze in submenu
 void Life::sub_Menu() {
 
   bool doen = true;
   cout << "(T)erug (P)ercentage (K)arakters (S)tapgrootte" << endl;
 
   while (doen) {
-    lees_Optie();
+    kies = lees_Optie();
     switch (kies) {
     case 't': // terug
     case 'T': // terug
@@ -240,6 +308,7 @@ void Life::sub_Menu() {
     case 'k':
     case 'K':
       karakters();
+      doen=false;
       break;
     case 'w':
       hoekj--;
@@ -259,29 +328,81 @@ void Life::sub_Menu() {
       break;
 
     default:
-      // sub_Menu(Life &mylife);
+      // sub_Menu();
       break;
     }
   } // while
-} // submenu
+}
+//Gaan, toont meerdere generaties achter elkaar
+void Life::gaan(){
+  for (int teller = 0; teller < SERIEGROOTTE-1; teller++) {
+    eengeneratie(true);
+    //cout << endl;
+  }//for
+  eengeneratie(false);
+}
+//Drukaf, print de view
+void Life::drukaf() {
+  for (int i=0; i<breedte;i++) cout << "=";
+  cout<<endl;
 
+  for (LOOPY) {
+    for (LOOPX)
+      cout << (wereld[y][x] ? levend : dood);
+    cout << endl;
+  }//for
+
+  for (int i=0; i<breedte;i++) cout << "=";
+  cout << endl;
+}
+//Verschuif, verschuiven van view
+void Life::verschuif(){
+  char key;
+  key=' ';
+  while(key!='q'){
+    cin.get(key);
+    switch(key){
+      case 'i':
+        hoekj--;
+        if (hoekj<0) hoekj=0;
+        break;
+      case 'm':
+        hoekj++;
+        if (hoekj>(MAX-hoogte))hoekj=MAX-hoogte;
+        break;
+      case 'j':
+        hoeki--;
+        if (hoeki<0) hoeki=0;
+        break;
+      case 'k':
+        hoeki++;
+        if (hoeki>(MAX-breedte))hoeki=MAX-breedte;
+        break;
+      default:
+        {}
+    }//switch
+    drukaf();
+  }//while
+  cout << "x hoek" << hoeki << ", y hoek" << hoekj << endl;
+}
+//Vulrandom, vullen van de view met random
 void Life::vulrandom() {
   for (int x = hoeki; x < (hoeki + breedte); x++)
     for (int y = hoekj; y < (hoekj + hoogte); y++)
       wereld[y][x] = (random_Getal() < 500 ? false : true);
 } // randomn vullen van view
-
-void Life::lees_Optie() {
-  char weg = 'a';
-  kies = '\n';
+//Lees optie, lees een optie in
+char Life::lees_Optie() {
+  char weg;
+  char dummy = '\n';
   do {
-    cin.get(kies);
-  } while (kies == '\n');
-  do {
-    cin.get(weg);
-  } while (weg != '\n');
-} // lees optie in
+    cin.get(dummy);
+  } while (dummy == '\n');
 
+  cin.get(weg);
+  return dummy;
+}
+//Lees getal, leest getal in
 void Life::lees_Getal() {
   char dummy;
   char myarray[MAXCIJFERS];
@@ -323,8 +444,8 @@ int Life::random_Getal() {
   _getal = (221 * _getal + 1) % 1000; // niet aan knoeien
   return _getal;
 
-} // randomgetal
-
+}
+//Aantalburen, bepaald het aantal buren
 int Life::aantalburen(int x, int y) {
   // check check
   int buren = 0;
@@ -350,7 +471,7 @@ int Life::aantalburen(int x, int y) {
 
   return buren;
 }
-
+//Glidergun, leest een txt file in (bijv: glidergun.txt)
 void Life::glidergun() {
   int x = 0;
   int y = 0;
@@ -371,15 +492,29 @@ void Life::glidergun() {
       }
       y++;
       cout << endl;
-    }
+    }//while
     myfile.close();
-  } else
+  }//if
+   else
     cout << "Deze file kan niet geopend worden.";
-} // glidergun
+}
 
 int main() {
 
-  Life mylife(30,30);
+  string line;
+  ifstream infofile;
+  infofile.open("info.txt");
+  if (infofile.is_open()){
+    while (getline(infofile, line)){
+      cout << line << endl;
+    }//while
+  }//if
+   infofile.close();
+
+  cout << "Press enter to continue .. " << endl;
+  cin.get(); // line;
+
+  Life mylife(60,30);
 
   mylife.heelschoon();
   mylife.start();
