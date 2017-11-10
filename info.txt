@@ -1,0 +1,6 @@
+Programmeeropdracht 3 : Life . ” << endl ;
+Programma gemaakt door: Charlotte Marosvolgyi ( s2058944 )
+Laatste versie op : 10 november 2017
+Docent : Walter Kosters 
+Vak : Programmeermethoden 
+Universiteit Leiden 
