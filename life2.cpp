@@ -61,14 +61,6 @@ private:
   int getal;
   int step;
   double fraction;
-  void killborder();
-  void copytohulp();
-  void copytoreal();
-  void verschuif();
-  void footer();
-  void eengeneratie(bool, bool);
-  void toggle();
-  void stapgrootte();
 
 public:
   Life(); // constructor
@@ -90,6 +82,15 @@ public:
   void schoon();
   void glidergun();
   void karakters();
+  void killborder();
+  void copytohulp();
+  void copytoreal();
+  void verschuif();
+  void footer();
+  void eengeneratie(bool, bool);
+  void toggle();
+  void stapgrootte();
+
 };
 
 // Default constructor
