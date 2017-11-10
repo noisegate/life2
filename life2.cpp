@@ -65,7 +65,7 @@ private:
   void footer();
   void eengeneratie(bool);
   void toggle();
-
+  void stapgrootte();
 
 public:
   Life(); // constructor
@@ -215,10 +215,17 @@ void Life::wereldafdruk() {
 }
 //Zetpercentage, bepalen van percentage levende cellen tussen 0 en 100
 void Life::zetpercentage() {
-  cout << "Nieuwe waarde.. " << endl;
+  cout << "Nieuw percentage levende cellen.. " ;
   lees_Getal();
 
 }
+
+void Life::stapgrootte(){
+  cout << "Nieuwe stapgrootte.. ";
+  lees_Getal();
+
+}
+
 //Start, begin van programma met schone wereld
 void Life::start() {
   kies = 'a';
@@ -236,11 +243,11 @@ void Life::menu() {
   footer();
   kies = lees_Optie();
   switch (kies) {
-  case 'e':
+  case 'e': //Een generatie
   case 'E':
     eengeneratie(false);
     break;
-  case 'h':
+  case 'h': //Heelschoon
   case 'H':
     heelschoon();
     break;
@@ -257,29 +264,29 @@ void Life::menu() {
   case 'P': // submenu
     sub_Menu();
     break;
-  case 'd':
-  case 'D':
+  case 'd': //view afdrukken
+  case 'D': //view afrdukken
     // heelschoon();
     drukaf();
     break;
-  case 'g':
-  case 'G':
+  case 'g': //glidergun
+  case 'G': //glidergun
     glidergun();
     break;
-  case 'v':
+  case 'v': //verschuiven
     verschuif();
     break;
-  case 'w':
+  case 'w': //wereld afdrukken
     wereldafdruk();
     break;
-  case 'a':
+  case 'a': //generaties afdrukken
     gaan();
     break;
   case 's': // stoppen
   case 'S': // stoppen
     break;
-  case 't':
-  case 'T':
+  case 't': //cellen omklappen
+  case 'T': //cellen omklappen
     toggle();
     break;
 
@@ -305,30 +312,17 @@ void Life::sub_Menu() {
       doen = false;
       cout << getal;
       break;
-    case 'k':
-    case 'K':
+    case 's': //stapgrootte
+    case 'S': //stapgrootte
+      stapgrootte();
+      break;
+    case 'k': //karakters
+    case 'K': //karakters
       karakters();
       doen=false;
       break;
-    case 'w':
-      hoekj--;
-      if (hoekj<0) hoekj=0;
-      break;
-    case 'z':
-      hoekj++;
-      if (hoekj>(MAX-hoogte))hoekj=MAX-hoogte;
-      break;
-    case 'a':
-      hoeki--;
-      if (hoeki<0) hoeki=0;
-      break;
-    case 's':
-      hoeki++;
-      if (hoeki>(MAX-breedte))hoeki=MAX-breedte;
-      break;
-
     default:
-      // sub_Menu();
+      cout << "Deze optie bestaat niet";
       break;
     }
   } // while
@@ -515,7 +509,6 @@ int main() {
   cin.get(); // line;
 
   Life mylife(60,30);
-
   mylife.heelschoon();
   mylife.start();
 
